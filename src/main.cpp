@@ -64,7 +64,7 @@ int main(int argc, char** argv){
 		//If we need to display a new frame based on our frame rate
 		if(getTime() - lastFrameTime >= frameTime){
 			if(frameCounter >= frames){
-				//Close and reopen the pipe to re-stream the video
+				//Close and reopen the pipe to auto-replay the video after it ends
 				pclose(videoStream);
 				videoStream = popen(videoCmd.c_str(), "r");
 				frameCounter = 0;

@@ -1,2 +1,6 @@
 *.exe
+*.out
+*.o
+*.opp
 *.mp4
+*.mp3
