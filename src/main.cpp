@@ -29,8 +29,10 @@ int main(int argc, char** argv){
 	}
 
 	//Obtain info on the video we're about to play, width, height, number of frames
-	unsigned int width, height, frames, frameRate;
-	const std::string videoInfoCmd = "ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets,r_frame_rate,width,height -of csv=p=0:s=x " + videoPath;
+	unsigned int width, height, frames, frameRate, channels, codecTimeBase;
+	const std::string videoInfoCmd = "ffprobe -v error -select_streams v:0 -count_packets"
+		"-show_entries stream=nb_read_packets,r_frame_rate,width,height "
+		"-of csv=p=0:s=x " + videoPath;
 	FILE* sizeProc = popen(videoInfoCmd.c_str(), "r");
 	fscanf(sizeProc, "%dx%dx%d/1x%d\n", &width, &height, &frameRate, &frames);
 	fflush(sizeProc);
