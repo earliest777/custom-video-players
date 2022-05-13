@@ -52,5 +52,8 @@
     "cpplint.lineLength": 110,
     "cpplint.repository": "${workspaceFolder}/src",
     "cpplint.root": "${workspaceFolder}/src",
-    "cpplint.filters": ["-build/include_subdir"]
+    "cpplint.filters": [
+        "-build/include_subdir"
+    ],
+    "C_Cpp.errorSquiggles": "Enabled"
 }

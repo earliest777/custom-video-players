@@ -7,6 +7,7 @@ extern "C" {
 #include<pulse/pulseaudio.h>
 }
 
+#include<tuple>
 #include<string>
 #include<stdexcept>
 
@@ -31,12 +32,24 @@ pa_sample_format_t getPaFormat(std::string ffmpegFormat) {
     return formatMap.at(ffmpegFormat);
 }
 
-
-
 std::string getAudioStreamCmd(const std::string& filename, const std::string& format,
                               uint8_t numChannels, uint32_t sampleRate) {
     return "ffmpeg -v error -i " + filename + " -ar " + std::to_string(sampleRate) +
-           " -ac " + std::to_string(numChannels) + " -f s16le -";
+           " -ac " + std::to_string(numChannels) + " -f " + format + " -";
+}
+
+// Obtain default stream info with respect to the file we're opening by ffprobing it. 
+// Still only support s16le as the default audio format
+PulseAudioPlayer::StreamInfo defaultStreamInfo(const std::string& filename) {
+    // pull defaults from the file's own internal format
+    const std::string audioInfoCmd = "ffprobe -v error -show_entries stream=sample_rate,channels"
+                                     " -of csv=p=0:s=, " + filename;
+    FILE* audioInfoProc = popen(audioInfoCmd.c_str(), "r");
+    uint32_t sampleRate;
+    uint8_t numChannels;
+    fscanf(audioInfoProc, "%d,%d\n", &sampleRate, &numChannels);
+    pclose(audioInfoProc);
+    return std::tie("s16le", numChannels, sampleRate);
 }
 
 // Callbacks ================================================================================================
@@ -78,7 +91,8 @@ void paContextSetStateCallback(pa_context *context, void *userdata) {
 // Methods ==================================================================================================
 
 
-PulseAudioPlayer::PulseAudioPlayer(const std::string&& filename, const std::string&& format,
+
+PulseAudioPlayer::PulseAudioPlayer(std::string filename, std::string format,
                                    uint8_t channels, uint32_t sampleRate)
 :fileName(filename), format(format), numChannels(numChannels), sampleRate(sampleRate),
 audioStreamCmd(getAudioStreamCmd(filename, format, numChannels, sampleRate)) {
@@ -91,6 +105,12 @@ audioStreamCmd(getAudioStreamCmd(filename, format, numChannels, sampleRate)) {
         throw std::runtime_error("PulseAudioPlayer Error: could not connect to the Pulse Audio Server");
     pa_context_set_state_callback(context, &paContextSetStateCallback, this);
 }
+
+PulseAudioPlayer::PulseAudioPlayer(std::string filename, const StreamInfo& streamInfo)
+:PulseAudioPlayer(filename, std::get<0>(streamInfo), std::get<1>(streamInfo), std::get<2>(streamInfo)) {}
+
+PulseAudioPlayer::PulseAudioPlayer(std::string filename)
+:PulseAudioPlayer(filename, defaultStreamInfo(fileName)) {}
 
 PulseAudioPlayer::~PulseAudioPlayer() {
     pclose(inputStream);
