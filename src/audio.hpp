@@ -1,26 +1,43 @@
+// Copyright 2022 James T Oswald
 
+#ifndef SRC_AUDIO_HPP_
+#define SRC_AUDIO_HPP_
+
+extern "C" {
+#include<pulse/pulseaudio.h>
+}
 
 #include<string>
 #include<unordered_map>
 
-extern "C"{
-#include<pulse/pulseaudio.h>
-}
+// Called on updates to the Pulse audio server connection
+void paContextSetStateCallback(pa_context *context, void *userdata);
+
+// Called by the audio stream to request more audio data for its internal buffer
+void paAudioStreamRequestCallback(pa_stream *p, size_t nbytes, void* userdata);
 
 class PulseAudioPlayer{
-    private:
-        //Maps valid ffmpeg audio formats to pulse audio format enums
-        using FormatLookupTable = std::unordered_map<std::string, pa_sample_format_t>;
-        const static FormatLookupTable formatMap;
+    friend void paContextStateChangeCallback(pa_context *context,
+                                             void *userdata);
+    friend void paAudioStreamRequestCallback(pa_stream *p, size_t nbytes,
+                                             void* userdata);
+ private:
+    // Our internal logic
+    const unsigned int channels, sampleRate;
+    const std::string fileName, format, audioStreamCmd;
 
-        const unsigned int channels, sampleRate;
-        const std::string fileName, audioStreamCmd;
-        pa_mainloop* mainloop;
-        pa_mainloop_api* mainloopapi;
-        pa_context* context;
-    public:
-        PulseAudioPlayer();
-        PulseAudioPlayer(std::string filename, std::string format, uint8_t channels = 2, uint32_t sampleRate = 44100);
-        ~PulseAudioPlayer();
-        void update();
+    pa_mainloop* mainloop;
+    pa_mainloop_api* mainloopapi;
+    pa_context* context;       // The connection to the pulseAudio Server
+    FILE* inputStream;         // The location to read the audio stream from
+    pa_stream* outputStream;   // The output audio stream object
+ public:
+    PulseAudioPlayer();
+    explicit PulseAudioPlayer(const std::string&& filename);
+    PulseAudioPlayer(const std::string&& filename, const std::string&& format,
+                     uint8_t channels, uint32_t sampleRate);
+    ~PulseAudioPlayer();
+    void update();
 };
+
+#endif  // SRC_AUDIO_HPP_
