@@ -47,5 +47,10 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "iostream": "cpp"
-    }
+    },
+    "C_Cpp.default.cppStandard": "c++20",
+    "cpplint.lineLength": 110,
+    "cpplint.repository": "${workspaceFolder}/src",
+    "cpplint.root": "${workspaceFolder}/src",
+    "cpplint.filters": ["-build/include_subdir"]
 }

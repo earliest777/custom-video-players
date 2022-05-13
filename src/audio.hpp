@@ -1,7 +1,7 @@
 // Copyright 2022 James T Oswald
 
-#ifndef SRC_AUDIO_HPP_
-#define SRC_AUDIO_HPP_
+#ifndef AUDIO_HPP_
+#define AUDIO_HPP_
 
 extern "C" {
 #include<pulse/pulseaudio.h>
@@ -14,16 +14,14 @@ extern "C" {
 void paContextSetStateCallback(pa_context *context, void *userdata);
 
 // Called by the audio stream to request more audio data for its internal buffer
-void paAudioStreamRequestCallback(pa_stream *p, size_t nbytes, void* userdata);
+void paStreamSetWriteCallback(pa_stream *p, size_t nbytes, void* userdata);
 
 class PulseAudioPlayer{
-    friend void paContextStateChangeCallback(pa_context *context,
-                                             void *userdata);
-    friend void paAudioStreamRequestCallback(pa_stream *p, size_t nbytes,
-                                             void* userdata);
+    friend void paContextSetStateCallback(pa_context *context, void *userdata);
+    friend void paStreamSetWriteCallback(pa_stream *p, size_t nbytes, void* userdata);
  private:
     // Our internal logic
-    const unsigned int channels, sampleRate;
+    const unsigned int numChannels, sampleRate;
     const std::string fileName, format, audioStreamCmd;
 
     pa_mainloop* mainloop;
@@ -40,4 +38,4 @@ class PulseAudioPlayer{
     void update();
 };
 
-#endif  // SRC_AUDIO_HPP_
+#endif  // AUDIO_HPP_
