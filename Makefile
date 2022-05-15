@@ -1,4 +1,18 @@
 
+CC = g++
+FLAGS = -g -std=c++17
+SOURCES = $(wildcard src/*.cpp)
+OBJECTS = $(SOURCES:src/%.cpp=bin/%.opp)
+LIBS = -lX11 -lpulse 
 
-all: src/main.cpp
-	g++ -g src/main.cpp $(shell pkg-config --cflags --libs x11) -o Overhead.exe
+Overhead.exe: $(OBJECTS)
+	$(CC) $(FLAGS) -o $@ $^ $(LIBS) 
+
+bin/%.opp : src/%.cpp src/%.hpp
+	$(CC) $(FLAGS) -c -o $@ $<
+
+bin/%.opp : src/%.cpp
+	$(CC) $(FLAGS) -c -o $@ $<
+
+clean:
+	rm bin/*

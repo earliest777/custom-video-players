@@ -19,7 +19,7 @@ const std::string& getXEventString(const XEvent& e){
         "LeaveNotify", "FocusIn", "FocusOut", "KeymapNotify",
         "Expose", "GraphicsExpose", "NoExpose", "VisibilityNotify",
         "CreateNotify", "DestroyNotify", "UnmapNotify",
-        "MapNotify", "MapRequest", "ReparentNotify", 
+        "MapNotify", "MapRequest", "ReparentNotify",
         "ConfigureNotify", "ConfigureRequest", "GravityNotify",
         "ResizeRequest", "CirculateNotify", "CirculateRequest",
         "PropertyNotify", "SelectionClear", "SelectionRequest",

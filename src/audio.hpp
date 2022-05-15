@@ -24,14 +24,14 @@ class PulseAudioPlayer{
     friend void paStreamSetWriteCallback(pa_stream *p, size_t nbytes, void* userdata);
  private:
     // Our internal stream properties
-    const unsigned int numChannels, sampleRate;
-    const std::string fileName, format, audioStreamCmd;
+    const unsigned int numChannels_, sampleRate_;
+    const std::string fileName_, format_, audioStreamCmd_;
 
-    pa_mainloop* mainloop;
-    pa_mainloop_api* mainloopapi;
-    pa_context* context;       // The connection to the pulseAudio Server
-    FILE* inputStream;         // The location to read the audio stream from
-    pa_stream* outputStream;   // The output audio stream object
+    pa_mainloop* mainloop_;
+    pa_mainloop_api* mainloopapi_;
+    pa_context* context_;       // The connection to the pulseAudio Server
+    FILE* inputStream_;         // The location to read the audio stream from
+    pa_stream* outputStream_;   // The output audio stream object
 
  public:
     PulseAudioPlayer() = delete;
