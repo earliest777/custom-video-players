@@ -19,6 +19,6 @@ int main(int argc, char** argv) {
 
     while (true) {
         videoPlayer.update();
-        //audioPlayer.update();
+        audioPlayer.update();
     }
 }

@@ -83,7 +83,8 @@ void paContextSetStateCallback(pa_context *context, void *userdata) {
                                                    PA_STREAM_NOFLAGS, NULL, NULL);
             printf("Error: %s\n", pa_strerror(error));
             if (error != pa_error_code::PA_OK)
-                throw std::runtime_error("PulseAudioPlayer Error: could not connect to the Pulse Audio Server");
+                throw std::runtime_error("PulseAudioPlayer Error:"
+                                         "could not connect to the Pulse Audio Server");
             break;
         }
         default:
