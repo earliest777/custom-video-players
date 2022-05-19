@@ -31,10 +31,13 @@ class X11VideoPlayer {
     int total_frame_count_;                // Number of frames in the video
     uint32_t frame_counter_;
 
+    bool close_window_;
+
  public:
     explicit X11VideoPlayer(std::string fileName);
     ~X11VideoPlayer();
     void update();
+    const bool& shouldClose() const;
 };
 
 #endif  // VIDEO_HPP_

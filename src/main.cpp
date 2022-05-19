@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     X11VideoPlayer videoPlayer(video_path);
     PulseAudioPlayer audioPlayer(video_path);
 
-    while (true) {
+    while (!videoPlayer.shouldClose()) {
         videoPlayer.update();
         audioPlayer.update();
     }

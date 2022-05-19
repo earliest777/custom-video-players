@@ -1,3 +1,6 @@
+
+profiles
+assets
 *.exe
 *.out
 *.o

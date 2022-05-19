@@ -104,6 +104,8 @@ audioStreamCmd_(getAudioStreamCmd(filename, format, channels, sampleRate)) {
     mainloopapi_ = pa_mainloop_get_api(mainloop_);
     const std::string connectionName = filename + "PulseAudioPlayer";
     context_ = pa_context_new(mainloopapi_, connectionName.c_str());
+    inputStream_ = nullptr;
+    outputStream_ = nullptr;
     int error = pa_context_connect(context_, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL);
     if (error != pa_error_code::PA_OK)
         throw std::runtime_error("PulseAudioPlayer Error: could not connect to the Pulse Audio Server");
@@ -117,8 +119,10 @@ PulseAudioPlayer::PulseAudioPlayer(std::string filename)
 :PulseAudioPlayer(filename, defaultStreamInfo(filename)) {}
 
 PulseAudioPlayer::~PulseAudioPlayer() {
-    pclose(inputStream_);
-    pa_stream_disconnect(outputStream_);
+    if (inputStream_)
+        pclose(inputStream_);
+    if (outputStream_)
+        pa_stream_disconnect(outputStream_);
     pa_mainloop_free(mainloop_);
     // Do not need to free mainloopapi, see
     // https://freedesktop.org/software/pulseaudio/doxygen/mainloop_8h.html#a9e5b510dabb4eb1a01645c4db65b9ddb

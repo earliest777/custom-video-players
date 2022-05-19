@@ -55,8 +55,8 @@ X11VideoPlayer::X11VideoPlayer(const std::string video_path) {
     XSetErrorHandler(X11ErrorHandler);
     display_ = XOpenDisplay(NULL);
     const int screen_num = DefaultScreen(display_);
-    window_width_ = 1080;  // DisplayWidth(display_, screen_num);
-    window_height_ = 720;  // DisplayHeight(display_, screen_num);
+    window_width_ = 800;  // DisplayWidth(display_, screen_num);
+    window_height_ = 600;  // DisplayHeight(display_, screen_num);
     Window root_window = XDefaultRootWindow(display_);
     window_ = XCreateSimpleWindow(display_, root_window, 0, 0, window_width_, window_height_, 0, 0, 0);
     visual_ = DefaultVisual(display_, screen_num);
@@ -75,7 +75,6 @@ X11VideoPlayer::X11VideoPlayer(const std::string video_path) {
     frame_time_ = 1000 / frame_rate;
 
     // Compute scaling sizes from window and video sizes
-    /*
     if (window_width_ - raw_width > window_height_ - raw_height) {
         video_width_ = window_width_;
         double scaling_factor = window_width_ / static_cast<double>(raw_width);
@@ -85,9 +84,6 @@ X11VideoPlayer::X11VideoPlayer(const std::string video_path) {
         video_width_ = static_cast<uint32_t>(scaling_factor * raw_width);
         video_height_ = window_height_;
     }
-    */
-    video_width_ = raw_width;
-    video_height_ = raw_height;
 
     // Prepare the BGRA frame buffer
     video_frame_buffer_size_ = video_width_ * video_height_ * 4;
@@ -109,6 +105,7 @@ X11VideoPlayer::X11VideoPlayer(const std::string video_path) {
     // Set update loop initial values
     frame_counter_ = 0;
     prev_frame_time_ = getTime();
+    close_window_ = false;
 }
 
 X11VideoPlayer::~X11VideoPlayer() {
@@ -135,6 +132,13 @@ void X11VideoPlayer::update() {
     while (XPending(display_)) {
         XEvent event;
         XNextEvent(display_, &event);
+        if (event.type == 2) {  // close window on keypress
+            close_window_ = true;
+        }
         std::cout << "XEvent Handled:" + getXEventString(event) << std::endl;
     }
+}
+
+const bool& X11VideoPlayer::shouldClose() const {
+    return close_window_;
 }
