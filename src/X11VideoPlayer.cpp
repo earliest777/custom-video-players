@@ -11,7 +11,7 @@ extern "C" {
 #include<iostream>
 #include<stdexcept>
 
-#include"video.hpp"
+#include"X11VideoPlayer.hpp"
 
 // Helpers ==================================================================================================
 

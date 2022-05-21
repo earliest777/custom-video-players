@@ -1,7 +1,7 @@
 // Copyright 2022 James T Oswald
 
-#ifndef VIDEO_HPP_
-#define VIDEO_HPP_
+#ifndef X11VIDEOPLAYER_HPP_
+#define X11VIDEOPLAYER_HPP_
 
 extern "C" {
 #include<X11/Xlib.h>
@@ -40,5 +40,5 @@ class X11VideoPlayer {
     const bool& shouldClose() const;
 };
 
-#endif  // VIDEO_HPP_
+#endif  // X11VIDEOPLAYER_HPP_
 

@@ -1,7 +1,7 @@
 // Copyright 2022 James T Oswald
 
-#include"video.hpp"
-#include"audio.hpp"
+#include"X11VideoPlayer.hpp"
+#include"pulseAudioPlayer.hpp"
 
 int main(int argc, char** argv) {
     std::string video_path;

@@ -1,7 +1,7 @@
 // Copyright 2022 James T Oswald
 
-#ifndef AUDIO_HPP_
-#define AUDIO_HPP_
+#ifndef PULSEAUDIOPLAYER_HPP_
+#define PULSEAUDIOPLAYER_HPP_
 
 extern "C" {
 #include<pulse/pulseaudio.h>
@@ -43,4 +43,4 @@ class PulseAudioPlayer{
     void update();
 };
 
-#endif  // AUDIO_HPP_
+#endif  // PULSEAUDIOPLAYER_HPP_

@@ -11,7 +11,7 @@ extern "C" {
 #include<string>
 #include<stdexcept>
 
-#include"audio.hpp"
+#include"pulseAudioPlayer.hpp"
 
 // Helper Functions =========================================================================================
 
