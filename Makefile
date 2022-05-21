@@ -5,7 +5,7 @@ SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(SOURCES:src/%.cpp=bin/%.opp)
 LIBS = -lX11 -lpulse 
 
-Overhead.exe: $(OBJECTS)
+Overhead: $(OBJECTS)
 	$(CC) $(FLAGS) -o $@ $^ $(LIBS) 
 
 bin/%.opp : src/%.cpp src/%.hpp
