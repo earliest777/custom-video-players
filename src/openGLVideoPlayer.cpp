@@ -149,9 +149,7 @@ OpenGLVideoPlayer::OpenGLVideoPlayer(std::string video_path) {
         throw std::runtime_error("Could not create window: " + errorString);
     }
 
-    
-    
-    
+
     /*uint32_t vertexShader = loadShader("./vert.glsl", GL_VERTEX_SHADER);
     uint32_t fragmentShader = loadShader("./frag.glsl", GL_FRAGMENT_SHADER);
     shader_program_ = loadProgram(vertexShader, fragmentShader);
