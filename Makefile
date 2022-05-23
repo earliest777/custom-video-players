@@ -3,10 +3,12 @@ CC = g++
 FLAGS = -g -std=c++17
 SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(SOURCES:src/%.cpp=bin/%.opp)
-LIBS = -lX11 -lpulse 
+SHADERS = $(wildcard src/*.glsl)
+LIBS = -L"/usr/lib/x86_64-linux-gnu/" -lX11 -lpulse -lGL -lglfw -lavformat -lavcodec
 
-Overhead: $(OBJECTS)
-	$(CC) $(FLAGS) -o $@ $^ $(LIBS) 
+bin/Overhead: $(OBJECTS) $(SHADERS)
+	cp $(SHADERS) bin
+	$(CC) $(FLAGS) -o $@ $(OBJECTS) $(LIBS) 
 
 bin/%.opp : src/%.cpp src/%.hpp
 	$(CC) $(FLAGS) -c -o $@ $<

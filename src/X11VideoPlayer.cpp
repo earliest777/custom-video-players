@@ -49,7 +49,7 @@ int X11ErrorHandler(Display* display, XErrorEvent* error) {
     return 0;
 }
 
-// Helpers ==================================================================================================
+// Methods ==================================================================================================
 
 X11VideoPlayer::X11VideoPlayer(const std::string video_path) {
     XSetErrorHandler(X11ErrorHandler);
