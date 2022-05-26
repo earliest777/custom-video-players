@@ -27,7 +27,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    GLFWwindow* window_ = glfwCreateWindow(mode->width, mode->height, "OpenGLVideoPlayer", monitor, NULL);
+    GLFWwindow* window_ = glfwCreateWindow(1920 , 1080, "OpenGLVideoPlayer", monitor, NULL);
     if (window_ == nullptr) {
         const char* errorMessage;
         glfwGetError(&errorMessage);
@@ -106,6 +106,10 @@ int main() {
             unsigned int texture;
             glGenTextures(1, &texture);
             glBindTexture(GL_TEXTURE_2D, texture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width_, window_height_, 0,
                 GL_RGB, GL_UNSIGNED_BYTE, frame2_->data[0]);
             glGenerateMipmap(GL_TEXTURE_2D);
