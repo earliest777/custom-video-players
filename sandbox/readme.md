@@ -12,9 +12,9 @@ Some simple tests with streaming and the pulse audio API
 
 In conclusion, pthread + simple pulse API is insuffecent and choppy, its much better to use the Async Pulse Stream API
 
-# Video Demux Test
+# Video Demux Test (using sw_scale)
 
-Very slow, callgrind results speak for themselves:
+swscale is very slow, callgrind results speak for themselves:
 ```
 2,316,787,200  ???:0x000000000001c500 [/usr/lib/x86_64-linux-gnu/libswscale.so.5.5.100]
 1,470,300,000  ???:0x0000000000259080 [/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so]
@@ -27,3 +27,6 @@ Very slow, callgrind results speak for themselves:
 ```
 Large CPU used by swscale for the flip and YUV conversion.
 
+## Notes
+
+In the avframe object the YUV data is encoded with 8 bits per pixel
