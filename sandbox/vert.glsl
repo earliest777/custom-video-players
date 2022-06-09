@@ -1,7 +1,9 @@
 #version 400
 
 out vec2 texCoord;
- 
+
+//Taken from https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
+//Still requires you to bind an empty VAO
 void main()
 {
     float x = -1.0 + float((gl_VertexID & 1) << 2);

@@ -22,66 +22,14 @@ uint64_t getTime() {
     return (uint64_t)(tv.tv_sec) * 1000 + (uint64_t)(tv.tv_usec) / 1000;
 }
 
-// Load an open gl shader
-uint32_t loadShader(char* filename, uint shaderType) {
-    FILE* file;
-    file = fopen(filename, "r");
-    if (!file) {
-        printf("Could not open %s\n", filename);
-        perror("Error:");
-        exit(1);
-    }
-    fseek(file, 0, SEEK_END);
-    size_t fsize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char* glShaderCont = reinterpret_cast<char*>(malloc(fsize + 1));
-    fread(glShaderCont, 1, fsize, file);
-    glShaderCont[fsize] = 0;
-    fclose(file);
-
-    uint shader = glCreateShader(shaderType);
-    glShaderSource(shader, 1, (char const* const*)&glShaderCont, NULL);
-    glCompileShader(shader);
-    free(glShaderCont);
-    int success;
-    char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        printf("%s failed to compile with error:\n%s", filename, infoLog);
-        exit(1);
-    }
-    return shader;
-}
-
-// Load an open gl program
-uint32_t loadProgram(uint vertexShader, uint fragmentShader) {
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    int success;
-    char infoLog[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        printf("failed to link program with error:\n%s", infoLog);
-        exit(1);
-    }
-    return shaderProgram;
-}
-
-
-// Callbacks ================================================================================================
+// Callbacks ==============================================================================================
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
     glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-// Methods ==================================================================================================
-
-OpenGLVideoPlayer::OpenGLVideoPlayer(std::string video_path) {
-    // Window Setup
+// Private Helper Methods =================================================================================
+void OpenGLVideoPlayer::glfwSetup() {
     if (glfwInit() == GLFW_FALSE) {
         const char* errorMessage;
         glfwGetError(&errorMessage);
@@ -90,58 +38,58 @@ OpenGLVideoPlayer::OpenGLVideoPlayer(std::string video_path) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    window_ = glfwCreateWindow(mode->width, mode->height, "OpenGLVideoPlayer", monitor, NULL);
+    // GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    window_ = glfwCreateWindow(800 , 600, "OpenGLVideoPlayer", NULL, NULL);
     if (window_ == nullptr) {
         const char* errorMessage;
         glfwGetError(&errorMessage);
         throw std::runtime_error("Could not create window: " + std::string(errorMessage));
     }
     glfwMakeContextCurrent(window_);
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    // glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glfwSetKeyCallback(window_, onKeyPress);
 
+    // Set the window width and height
     int* width_ptr = reinterpret_cast<int*>(&window_width_);
     int* height_ptr = reinterpret_cast<int*>(&window_height_);
     glfwGetWindowSize(window_, width_ptr, height_ptr);
+}
 
+void OpenGLVideoPlayer::libavSetup() {
+    av_log_set_level(AV_LOG_QUIET);
 
-
-    // open the file file for information extraction
-    if (!avformat_open_input(&format_context_, video_path.c_str(), nullptr, nullptr))
+    // Set up the Format Context
+    format_context_ = nullptr;
+    int error = avformat_open_input(&format_context_, "../assets/sample-5s.mp4", nullptr, nullptr);
+    if (error != 0)
         throw std::runtime_error("Failed to open avformat");
 
-    // look for the video stream and extrat info about it
-    bool found_video_stream;
-    AVStream* video_stream;
+    // Pull video info
+    AVStream* video_stream = nullptr;
     for (int i = 0; i < format_context_->nb_streams; i++) {
-        AVStream* video_stream = format_context_->streams[i];
-        if (video_stream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            found_video_stream = true;
+        video_stream = format_context_->streams[i];
+        if (video_stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             break;
         }
     }
-    if (!found_video_stream)
-        throw std::runtime_error("File did not contain a video");
 
-    // Initilize all our members
-    video_width_ = video_stream->codec->width;
-    video_height_ = video_stream->codec->height;
-    frame_time_ = 1000 / video_stream->time_base.den;  // how long the frame will be on screen
-    total_frame_count_ = video_stream->nb_frames;
-    frame_counter_ = 0;
-    prev_frame_time_ = getTime();
-
-    // Set up the decoder
-    decoder_ = avcodec_find_decoder(video_stream->codec->codec_id);
+    decoder_ = avcodec_find_decoder(video_stream->codecpar->codec_id);
     if (!decoder_)
         throw std::runtime_error("Could not find the decoder");
-    decoder_context_ = avcodec_alloc_context3(decoder_);
+    AVCodecContext* decoder_context_ = avcodec_alloc_context3(decoder_);
+    avcodec_parameters_to_context(decoder_context_, video_stream->codecpar);
     if (avcodec_open2(decoder_context_, decoder_, nullptr))
         throw std::runtime_error("Could not open the decoder");
 
-    // OpenGL setup
+    packet_ = av_packet_alloc();  // A packet
+    frame_ = av_frame_alloc();  // The completed frame
+}
+
+extern const char* vertexShader;
+extern const char* fragmentShader;
+
+void OpenGLVideoPlayer::openglSetup() {
     GLenum glewInitError = glewInit();
     if (glewInitError != GLEW_OK) {
         const char* errorCString = reinterpret_cast<const char*>(glewGetErrorString(glewInitError));
@@ -149,35 +97,69 @@ OpenGLVideoPlayer::OpenGLVideoPlayer(std::string video_path) {
         throw std::runtime_error("Could not create window: " + errorString);
     }
 
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    /*uint32_t vertexShader = loadShader("./vert.glsl", GL_VERTEX_SHADER);
-    uint32_t fragmentShader = loadShader("./frag.glsl", GL_FRAGMENT_SHADER);
-    shader_program_ = loadProgram(vertexShader, fragmentShader);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // Compile the shader program and set the texture location
+    uint32_t vertShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertShader, 1, (char const* const*)&vertexShader, NULL);
+    glCompileShader(vertShader);
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertShader, 512, NULL, infoLog);
+        printf("vert failed to compile with error:\n%s", infoLog);
+        exit(1);
+    }
+    uint32_t fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragShader, 1, (char const* const*)&fragmentShader, NULL);
+    glCompileShader(fragShader);
+    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragShader, 512, NULL, infoLog);
+        printf("frag failed to compile with error:\n%s", infoLog);
+        exit(1);
+    }
+    uint32_t shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertShader);
+    glAttachShader(shader_program, fragShader);
+    glLinkProgram(shader_program);
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
+        printf("failed to link program with error:\n%s", infoLog);
+        exit(1);
+    }
 
-    float vertices[] = {
-        1,  1,  
+    glUseProgram(shader_program);
+    GLint YLocation = glGetUniformLocation(shader_program, "Y");
+    glUniform1i(YLocation, 0);
+    GLint ULocation = glGetUniformLocation(shader_program, "U");
+    glUniform1i(ULocation, 1);
+    GLint VLocation = glGetUniformLocation(shader_program, "V");
+    glUniform1i(VLocation, 2);
 
-    };
+    // You have to bind a VAO to use glDrawArrays or everything breaks
+    // Even if the VAO is just empty
+    uint VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
-    uint32_t indices[] = {
-
-    };
-
-    glGenBuffers(1, &vbo_);
-    glGenVertexArrays(1, &vao_);
-    glBindVertexArray(vao_);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    /*
+        Textures are stored in the same order as YUV planes are in the frame
+        textures[0] is the Y plane, textures[1] is the U plane and textures[2] is the V plane
     */
+    unsigned int textures[3];
+    glGenTextures(3, textures);
+}
 
-    glGenTextures(1, &texture_);
-    glBindTexture(GL_TEXTURE_2D, texture_);
+// Public Methods ===========================================================================================
+
+OpenGLVideoPlayer::OpenGLVideoPlayer(std::string video_path) {
+    glfwSetup();
+    libavSetup();
+    openglSetup();
 }
 
 OpenGLVideoPlayer::~OpenGLVideoPlayer() {
@@ -186,28 +168,42 @@ OpenGLVideoPlayer::~OpenGLVideoPlayer() {
 }
 
 void OpenGLVideoPlayer::update() {
-    uint64_t cur_frame_time = getTime();
-    if (cur_frame_time - prev_frame_time_ >= frame_time_) {
-        // Close and reopen the pipe to auto-replay the video after it ends
-        if (frame_counter_ >= total_frame_count_) {
-            // Insert logic here to restart the av stream
-
-            frame_counter_ = 0;
-        }
-        AVPacket* packet;
-        int got_frame;
-        av_read_frame(format_context_, packet);
-        avcodec_decode_video2(decoder_context_, &frame_, &got_frame, packet);
-        av_packet_unref(packet);
-        av_frame_unref(&frame_);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width_, window_height_, 0,
-                     GL_RGB, GL_UNSIGNED_BYTE, frame_.data);
-        prev_frame_time_ = getTime();
-        frame_counter_++;
-        glfwSwapBuffers(window_);  // redraw the frame
+    av_read_frame(format_context_, packet_);
+    if (packet_->buf == NULL) {
+        // break;
+        // Restart the video if its over
+        av_seek_frame(format_context_, -1, 0, 0);
+        av_read_frame(format_context_, packet_);
     }
-    glfwPollEvents();
+    avcodec_send_packet(decoder_context_, packet_);
+    if (avcodec_receive_frame(decoder_context_, frame_) == 0) {
+        // Bind and write the Y component
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, textures_[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, frame_->width, frame_->height, 0,
+            GL_RED, GL_UNSIGNED_BYTE, frame_->data[0]);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // Bind and write the U component
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, textures_[1]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, frame_->width/2, frame_->height/2, 0,
+            GL_RED, GL_UNSIGNED_BYTE, frame_->data[1]);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // Bind and write the V component
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, textures_[2]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, frame_->width/2, frame_->height/2, 0,
+            GL_RED, GL_UNSIGNED_BYTE, frame_->data[2]);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+
+        // Convert the texture to a frame buffer?
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glfwSwapBuffers(window_);
+        glfwPollEvents();
+    }
 }
 
 bool OpenGLVideoPlayer::shouldClose() {

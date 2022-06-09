@@ -27,6 +27,11 @@ swscale is very slow, callgrind results speak for themselves:
 ```
 Large CPU used by swscale for the flip and YUV conversion.
 
-## Notes
+# Video Demux Test (using glsl shaders)
 
-In the avframe object the YUV data is encoded with 8 bits per pixel
+Much faster, video is not choppy. 
+
+# Notes
+
+* In the avframe object the YUV data is encoded with 8 bits per pixel 
+* The planes in the frame data are not stored sequentially in memory, 3 textures need to be used

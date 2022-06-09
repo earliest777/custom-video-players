@@ -1,6 +1,6 @@
 // Copyright 2022 James T Oswald
 
-#include"X11VideoPlayer.hpp"
+#include"OpenGLVideoPlayer.hpp"
 #include"pulseAudioPlayer.hpp"
 
 int main(int argc, char** argv) {
@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    X11VideoPlayer videoPlayer(video_path);
+    OpenGLVideoPlayer videoPlayer(video_path);
     PulseAudioPlayer audioPlayer(video_path);
 
     while (!videoPlayer.shouldClose()) {

@@ -8,12 +8,13 @@ uniform sampler2D Y;
 uniform sampler2D U;
 uniform sampler2D V;
 
-//This is all stolen from wikipedia
+//This is mostly stolen from Wikipedia
 //https://en.wikipedia.org/wiki/YUV#Y%E2%80%B2UV444_to_RGB888_conversion
 void main(){
-    int y = int(texture(Y, texCoord).x * 255);
-    int u = int(texture(U, texCoord).x * 255);
-    int v = int(texture(V, texCoord).x * 255);
+    vec2 flippedTextCord = vec2(texCoord.x, 1-texCoord.y);
+    int y = int(texture(Y, flippedTextCord).x * 255);
+    int u = int(texture(U, flippedTextCord).x * 255);
+    int v = int(texture(V, flippedTextCord).x * 255);
     int c = y - 16;
     int d = u - 128;
     int e = v - 128;

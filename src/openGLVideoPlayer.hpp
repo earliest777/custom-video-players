@@ -14,23 +14,30 @@ extern "C" {
 
 class OpenGLVideoPlayer {
  private:
+    // Glfw members for managing the window
     GLFWwindow* window_;
     uint32_t window_width_, window_height_;
-    // uint32_t shader_program_, vbo_, vao_;
-    uint32_t texture_;
+    void glfwSetup();
 
-    AVCodec* decoder_;
-    AVCodecContext* decoder_context_;
+    // Libav member for managing the video decoding
     AVFormatContext* format_context_;
-    AVPacket packet_;
-    AVFrame frame_;
-    uint32_t video_width_, video_height_;       // the displayed dims of the video in px
+    AVCodecContext* decoder_context_;
+    AVCodec* decoder_;
+    AVPacket* packet_;
+    AVFrame* frame_;
+    void libavSetup();
 
+    // OpenGL member for managing the video playback
+    GLuint shader_program_, vao_;               // Open GL handles
+    GLuint textures_[3];                        // The YUV planes as 3 sepreate textures
+    void openglSetup();
 
+    // Playback rate control members
     uint64_t frame_time_;                       // MS to show a frame for
     uint64_t prev_frame_time_;
     uint64_t total_frame_count_;                // Number of frames in the video
     uint32_t frame_counter_;
+
  public:
     explicit OpenGLVideoPlayer(std::string videoPath);
     void update();

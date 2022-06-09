@@ -10,6 +10,7 @@ extern "C" {
 #include<string>
 #include<iostream>
 #include<stdexcept>
+#include<cstdint>
 
 #include"X11VideoPlayer.hpp"
 

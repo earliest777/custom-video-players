@@ -121,8 +121,6 @@ int main() {
     GLint VLocation = glGetUniformLocation(shaderProgram, "V");
     glUniform1i(VLocation, 2);
 
-
-
     // Empty VAO to bind
     uint VAO;
     glGenVertexArrays(1, &VAO);
@@ -140,15 +138,14 @@ int main() {
     while (!glfwWindowShouldClose(window_)) {
         av_read_frame(format_context_, packet);
         if (packet->buf == NULL) {
-            break;
+            // break;
             // Restart the video if its over
-            // av_seek_frame(format_context_, -1, 0, 0);
-            // av_read_frame(format_context_, packet);
+            av_seek_frame(format_context_, -1, 0, 0);
+            av_read_frame(format_context_, packet);
         }
         avcodec_send_packet(decoder_context_, packet);
         if (avcodec_receive_frame(decoder_context_, frame_) == 0) {
             // Bind and write the Y component
-
             glActiveTexture(GL_TEXTURE0 + 0);
             glBindTexture(GL_TEXTURE_2D, textures[0]);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, frame_->width, frame_->height, 0,
@@ -173,6 +170,7 @@ int main() {
             // Convert the texture to a frame buffer?
             glDrawArrays(GL_TRIANGLES, 0, 3);
             glfwSwapBuffers(window_);
+            glfwPollEvents();
         }
     }
     glfwDestroyWindow(window_);
