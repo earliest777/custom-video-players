@@ -1,6 +1,6 @@
 # Overhead
 
-An interactive home statistics display written in C with X11.
+A custom video players written with libavcodec and OpenGL with libpulseaudio for sound. Was originally supposed to be the base for an interactive home statistics display system.
 
 ## Requirements
 
